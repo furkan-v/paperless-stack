@@ -83,13 +83,6 @@ services:
       - ./ollama/data/:/root/.ollama
       - ./ollama/models:/ollama-models
     restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
 
   # paperless-gpt service
   paperless-gpt:

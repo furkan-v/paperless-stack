@@ -34,10 +34,9 @@ Docker Compose stack for running Paperless-ngx with optional local AI capabiliti
    - Open Open WebUI at <http://localhost:3001> and pull models:
      - `llama3.2:3b` (lightweight, for metadata suggestions and document reasoning)
      - `minicpm-v:8b` (vision model, for improved OCR)
-     - These should match the models listed in  `./paperless-ai/.env` and `./paperless-gpt/.env
+     - These should match the models listed in `./paperless-gpt/.env
    - In Paperless, go to Profile → API Tokens → Generate
-   - Copy the token and add it to `./paperless-ai/.env` and `./paperless-gpt/.env`
-   - Update `./paperless-ai/.env` with Paperless username
+   - Copy the token and add it to `./paperless-gpt/.env`
    - Restart services: `docker compose restart`
 
 **The AI components are entirely optional** and can be disabled by commenting them out. Paperless works great without AI.
@@ -48,7 +47,6 @@ Docker Compose stack for running Paperless-ngx with optional local AI capabiliti
 | ------- | --- |
 | Paperless-ngx | <http://localhost:8000> |
 | Open WebUI | <http://localhost:3001> |
-| Paperless-AI | <http://localhost:3000> |
 | Paperless-GPT | <http://localhost:3002> |
 | Dozzle (logs) | <http://localhost:8080> |
 
@@ -61,7 +59,6 @@ Docker Compose stack for running Paperless-ngx with optional local AI capabiliti
 - Optional local AI features:
   - Ollama for local LLM inference
   - Open WebUI for model management
-  - Paperless-AI for metadata suggestions
   - Paperless-GPT for vision-based OCR improvements and metadata suggestions
 - Log viewer with Dozzle
 
@@ -98,7 +95,6 @@ This stack is built using these awesome open-source projects:
 - **[Paperless-ngx](https://github.com/paperless-ngx/paperless-ngx)** - Document management system with OCR and search
 - **[Ollama](https://github.com/ollama/ollama)** - Local LLM inference
 - **[Open WebUI](https://github.com/open-webui/open-webui)** - Web interface for Ollama
-- **[Paperless-AI](https://github.com/clusterzx/paperless-ai)** - AI-powered metadata suggestions
 - **[Paperless-GPT](https://github.com/icereed/paperless-gpt)** - Vision OCR for Paperless
 - **[PostgreSQL](https://github.com/postgres/postgres)** - Database system
 - **[Redis](https://github.com/redis/redis)** - Cache and message broker

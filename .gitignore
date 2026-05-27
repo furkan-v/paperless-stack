@@ -1,0 +1,13 @@
+ollama/data
+ollama/models
+
+open-webui/data
+
+paperless/consume
+paperless/data
+paperless/export
+paperless/media
+
+postgres/data
+
+redis/data

@@ -33,11 +33,11 @@ Docker Compose stack for running Paperless-ngx with optional local AI capabiliti
    For AI features, you'll need to:
    - Open Open WebUI at <http://localhost:3001> and pull models:
      - `llama3.2:3b` (lightweight, for metadata suggestions and document reasoning)
-     - `minicpm-v:8b` (vision model, for improved OCR)
-     - These should match the models listed in `./paperless-gpt/.env
+     - `qwen3-vl:2b-instruct` (vision model, for improved OCR)
+     - These should match the models listed in `./paperless-gpt/.env`.
    - In Paperless, go to Profile → API Tokens → Generate
-   - Copy the token and add it to `./paperless-gpt/.env`
-   - Restart services: `docker compose restart`
+   - Copy `.env.example` to `.env` at the repo root and set `PAPERLESS_API_TOKEN=<your-token>` (this file is gitignored).
+   - Restart services: `docker compose up -d` (re-reads the new token)
 
 **The AI components are entirely optional** and can be disabled by commenting them out. Paperless works great without AI.
 

@@ -11,3 +11,5 @@ paperless/media
 postgres/data
 
 redis/data
+
+.env

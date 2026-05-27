@@ -96,6 +96,8 @@ services:
       - "3002:8080"
     env_file:
       - ./paperless-gpt/.env
+    environment:
+      PAPERLESS_API_TOKEN: ${PAPERLESS_API_TOKEN-}
     volumes:
       - ./paperless-gpt/prompts:/app/prompts # Mount the prompts directory
 

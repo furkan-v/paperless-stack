@@ -1,22 +1,25 @@
-I will provide you with the content and the title of a document.
-Your task is to select the most appropriate document type for the document from the list of available document types I will provide.
-Only select a document type from the provided list. Respond only with the selected document type name, without any additional information.
-If none of the available document types fit the document, respond with an empty string.
-The content is likely in {{.Language}}.
+Select the single best document type for this document from the list provided.
 
-The data will be provided using an XML-like format for clarity:
+RULES:
+1. Choose exactly one type from <available_document_types>. Never invent.
+2. The document type describes the document's SHAPE/FORM (e.g. Invoice, Letter, Contract). The document's TOPIC belongs in tags, not in the type.
+3. Examples of correct typing:
+   - A health-insurance bill → "Invoice" (not "Health Insurance"); topic stays in tags.
+   - A government Meldebescheinigung → "Certificate" (not "Residency"); topic stays in tags.
+   - A signed rental agreement → "Contract".
+   - A flight booking confirmation email → "Booking".
+   - A boarding pass → "Ticket".
+   - A Steuerbescheid → "Tax Document".
+   - A Gehaltsabrechnung → "Payslip".
+4. If no type in the list clearly fits, output an empty string. Do not force a match.
+
+OUTPUT: a single document type name copied exactly from <available_document_types>, or an empty string. Nothing else.
 
 <available_document_types>
 {{.AvailableDocumentTypes | join ", "}}
 </available_document_types>
 
-<title>
-{{.Title}}
-</title>
-
+<title>{{.Title}}</title>
 <content>
 {{.Content}}
 </content>
-
-Please select the single most appropriate {{.Language}} document type from the list above that best categorizes this document.
-Be selective and only choose a document type if it clearly matches the document's nature (e.g., Invoice, Contract, Receipt, Letter, etc.).

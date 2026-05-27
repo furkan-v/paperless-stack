@@ -1,11 +1,29 @@
-I will provide you with the content of a document that has been partially read by OCR (so it may contain errors).
-Your task is to find a suitable document title that I can use as the title in the paperless-ngx program.
-If the original title is already adding value and not just a technical filename you can use it as extra information to enhance your suggestion.
-Respond only with the title, without any additional information. The content is likely in {{.Language}}.
+Produce a concise document title in {{.Language}}.
 
-The data will be provided using an XML-like format for clarity:
+The source content may be in any language. The title MUST always be in {{.Language}}, regardless of the source language. The content was extracted by OCR and may contain errors — infer through them.
+
+A GOOD title:
+- 4 to 10 words, Title Case
+- Identifies the correspondent (or key topic) + a specific descriptor + (optionally) a date or period
+- Examples:
+  - "Deutsche Telekom Internet Invoice — March 2024"
+  - "Aufenthaltstitel Renewal Confirmation — 2024"
+  - "Hotel Adlon Berlin Booking — 2024-05-12"
+  - "Lufthansa Refund Receipt — LH4582"
+  - "BVG Monthly Ticket Receipt — 2024-03"
+
+A BAD title (never produce):
+- Generic ("Invoice", "Document", "Letter", "Receipt")
+- Wrapped in quotes
+- Ends with a period
+- Translates entity names that have no clean {{.Language}} equivalent (keep "Bundesamt für Migration und Flüchtlinge" as-is — do not Anglicize agency names)
+- Contains only the document type with no specifics
+
+If `<original_title>` is meaningful (not a filename like "scan_001.pdf"), treat it as a hint.
 
 <original_title>{{.Title}}</original_title>
 <content>
 {{.Content}}
 </content>
+
+OUTPUT: only the title text, in {{.Language}}. No quotes, no trailing period, no commentary.

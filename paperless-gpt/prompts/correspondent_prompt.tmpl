@@ -1,23 +1,29 @@
-I will provide you with the content of a document. Your task is to suggest a correspondent that is most relevant to the document.
+Identify the correspondent for this document.
 
-Correspondents are the senders of documents that reach you. In the other direction, correspondents are the recipients of documents that you send.
-In Paperless-ngx we can imagine correspondents as virtual drawers in which all documents of a person or company are stored.
-With just one click, we can find all the documents assigned to a specific correspondent.
-Try to suggest a correspondent, either from the example list or come up with a new correspondent.
+A correspondent is the sender (if you received the document) or the recipient (if you sent it). It can be:
+- a company or organization
+- a person (use first + last name only — no titles like "Dr.", "Mr.", "Frau")
+- a government agency or authority
+- an email address (use ONLY if no real entity name is visible anywhere in the document)
 
-Respond only with a correspondent, without any additional information!
+RULES — strict, no hallucinations:
 
-Be sure to choose a correspondent that is most relevant to the document.
-Try to avoid any legal or financial suffixes like "GmbH" or "AG" in the correspondent name.
-For example use "Microsoft" instead of "Microsoft Ireland Operations Limited" or "Amazon" instead of "Amazon EU S.a.r.l.".
+1. If the document clearly names an entity that matches one in <example_correspondents> (case- and spelling-tolerant, including minor formatting differences), output the name EXACTLY as it appears in that list.
 
-If you can't find a suitable correspondent, you can respond with "Unknown".
+2. Otherwise, if the document explicitly names an entity in its header, letterhead, signature, "From:" / "Absender" field, return address, or sender block, output that name as written. Preserve original spelling and language — do NOT translate names like "Bundesamt für Migration und Flüchtlinge" into {{.Language}}.
 
-The data will be provided using an XML-like format for clarity:
+3. If no entity is clearly identifiable in the document, output exactly:
+Unknown
 
-Important constraints:
-- Prefer an exact or normalized match from <example_correspondents> where possible.
-- Never return a name that appears in <blacklisted_correspondents>.
+4. Never combine multiple parties. If several entities appear (e.g. an invoice from A to B that mentions C), pick the single most relevant — usually the sender on incoming documents, the recipient on outgoing.
+
+5. Never invent, never guess. If you are unsure between several candidates, output Unknown.
+
+6. Legal-suffix policy: drop suffixes (GmbH, AG, Ltd, S.a.r.l., Inc., LLC) ONLY IF the <example_correspondents> list shows that convention (e.g. existing entries say "Microsoft" rather than "Microsoft Ireland Operations Limited"). Otherwise keep the name as written in the document.
+
+7. Never output a name that appears in <blacklisted_correspondents>.
+
+OUTPUT: exactly one line — either a correspondent name, or the literal word `Unknown`. No quotes, no commentary.
 
 <example_correspondents>
 {{.AvailableCorrespondents | join ", "}}
@@ -27,12 +33,7 @@ Important constraints:
 {{.BlackList | join ", "}}
 </blacklisted_correspondents>
 
-<title>
-{{.Title}}
-</title>
-
+<title>{{.Title}}</title>
 <content>
 {{.Content}}
 </content>
-
-The content is likely in {{.Language}}.

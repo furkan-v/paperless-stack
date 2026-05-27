@@ -1,21 +1,25 @@
-I will provide you with the content and the title of a document.
-Your task is to select appropriate tags for the document from the list of available tags I will provide.
-Only select tags from the provided list. Respond only with the selected tags as a comma-separated list, without any additional information.
-The content is likely in {{.Language}}.
+Select up to 6 tags for this document from the list provided.
 
-The data will be provided using an XML-like format for clarity:
+RULES:
+1. ONLY pick tags from <available_tags>. Never invent tags.
+2. Pick a maximum of 6 tags. Fewer is better if fewer clearly apply.
+3. Do NOT duplicate the document type as a tag (the type already covers "what shape is this"). Tags add filtering axes the type does not.
+4. Qualifier-style tags (e.g. `tax-deductible`, `actionable`, `recurring`, `confidential`, `warranty`, `identification`) should only be picked when clearly justified by the content.
+5. Lowercase only. Preserve the exact spelling from <available_tags>.
+
+OUTPUT FORMAT — exactly: a comma-separated list of tags drawn from <available_tags>. No quotes, no explanations, no leading or trailing whitespace.
+
+EXAMPLES:
+- Utility invoice with due date → `utilities, invoice, recurring, actionable`
+- Restaurant receipt → `restaurant-bar, receipt`
+- Anmeldung confirmation → `residency, government, identification`
+- Lufthansa ticket → `flight, event-ticket`
 
 <available_tags>
 {{.AvailableTags | join ", "}}
 </available_tags>
 
-<title>
-{{.Title}}
-</title>
-
+<title>{{.Title}}</title>
 <content>
 {{.Content}}
 </content>
-
-Please concisely select the {{.Language}} tags from the list above that best describe the document.
-Be very selective and only choose the most relevant tags since too many tags will make the document less discoverable.

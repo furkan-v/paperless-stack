@@ -1,10 +1,26 @@
-I will provide you with the content of a document. Your task is to find the date when the document was created.
-Respond only with the date in YYYY-MM-DD format, without any additional information.
-If no day was found, use the first day of the month. If no month was found, use January. If no date was found at all, answer with today's date.
-The content is likely in {{.Language}}. Today's date is {{.Today}}.
+Find the document's creation/issue date.
 
-The data will be provided using an XML-like format for clarity:
+Today's date is {{.Today}}. Content may be in any language.
+
+PRIORITY — pick the date in this order:
+1. Invoice or receipt issue date ("Rechnungsdatum", "Date", "Datum", "Issued", "Ausgestellt am")
+2. Document header / letterhead date
+3. Signature date
+4. Any other explicit "this document was created on" reference
+
+DO NOT USE:
+- Payment due dates ("Zahlungsziel", "Due Date", "Fällig am") — that is a different field.
+- Service period dates ("Leistungszeitraum", "Service Period", "Abrechnungszeitraum").
+- Event or reservation dates ("Reservation for", "Event on", "Reisedatum").
+- Today's date as a fallback.
+
+FALLBACKS:
+- If only month and year are found → day = 01.
+- If only year is found → 01-01.
+- If no date can reasonably be determined → output an empty string. Never default to today.
 
 <content>
 {{.Content}}
 </content>
+
+OUTPUT: YYYY-MM-DD, or an empty string. Nothing else.

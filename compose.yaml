@@ -91,22 +91,6 @@ services:
               count: all
               capabilities: [gpu]
 
-  # paperless-ai service
-  paperless-ai:
-    image: clusterzx/paperless-ai:latest
-    container_name: paperless-ai
-    restart: unless-stopped
-    depends_on:
-      - ollama
-      - paperless
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./paperless-ai/.env
-    volumes:
-      - ./paperless-ai/data:/app/data
-  
-
   # paperless-gpt service
   paperless-gpt:
     image: icereed/paperless-gpt:latest

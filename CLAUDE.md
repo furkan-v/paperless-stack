@@ -67,16 +67,23 @@ These values are duplicated across files and must stay in sync. Changing one wit
 
 `paperless-gpt/prompts/*.tmpl` are **Go `text/template`** files, bind-mounted at `/app/prompts` inside the container. They control how the LLM produces each metadata field. Edits take effect on `docker compose restart paperless-gpt`.
 
-| File                              | What it produces                       | Notable template vars                                              |
-| --------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| `ocr_prompt.tmpl`                 | Vision-LLM OCR output (markdown)       | *(none — image is passed natively)*                                |
-| `title_prompt.tmpl`               | Document title                         | `.Title`, `.Content`, `.Language`                                  |
-| `tag_prompt.tmpl`                 | Comma-separated tag list               | `.AvailableTags`, `.Title`, `.Content`, `.Language`                |
-| `correspondent_prompt.tmpl`       | Sender/recipient name                  | `.AvailableCorrespondents`, `.BlackList`, `.Title`, `.Content`     |
-| `document_type_prompt.tmpl`       | Document type                          | `.AvailableDocumentTypes`, `.Title`, `.Content`                    |
-| `created_date_prompt.tmpl`        | `YYYY-MM-DD`                           | `.Content`, `.Language`, `.Today`                                  |
-| `custom_field_prompt.tmpl`        | JSON array of `{field, value}`         | `.Title`, `.Content`, `.CreatedDate`, `.DocumentType`, `.CustomFieldsXML` |
-| `adhoc-analysis_prompt.tmpl`      | Multi-document ad-hoc analysis output  | `range .Documents` with `.Correspondent`, `.CreatedDate`, `.CustomFields`, … |
+| File                              | What it produces                                                                       | Notable template vars                                                     |
+| --------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `ocr_prompt.tmpl`                 | Vision-LLM OCR output, **plain text only**, preserves source language                  | *(none — image is passed natively)*                                       |
+| `title_prompt.tmpl`               | Document title, always in `{{.Language}}` regardless of source-document language       | `.Title`, `.Content`, `.Language`                                         |
+| `tag_prompt.tmpl`                 | Comma-separated tag list, **max 6 per doc**, strictly from `{{.AvailableTags}}`        | `.AvailableTags`, `.Title`, `.Content`                                    |
+| `correspondent_prompt.tmpl`       | Single correspondent name; strict + existing-list bias; `Unknown` if undeterminable    | `.AvailableCorrespondents`, `.BlackList`, `.Title`, `.Content`, `.Language` |
+| `document_type_prompt.tmpl`       | One document type from the list (describes shape, not topic); empty if no fit          | `.AvailableDocumentTypes`, `.Title`, `.Content`                           |
+| `created_date_prompt.tmpl`        | `YYYY-MM-DD`, or empty string when undeterminable (never falls back to today)          | `.Content`, `.Today`                                                      |
+| `custom_field_prompt.tmpl`        | JSON array of `{field, value}`, **max 8 fields per doc**, no-hallucination heuristics  | `.Title`, `.Content`, `.CreatedDate`, `.DocumentType`, `.Language`, `.CustomFieldsXML` |
+| `adhoc-analysis_prompt.tmpl`      | Multi-document ad-hoc analysis (default example; users override per-query in the UI)   | `range .Documents` with `.Correspondent`, `.CreatedDate`, `.CustomFields`, … |
+
+The prompts assume a specific Paperless-side taxonomy (tags / document types / custom fields). The canonical list lives in two places that must stay in sync:
+
+- **`paperless-gpt/TAXONOMY.md`** — human-readable reference + UI walkthrough.
+- **`paperless-gpt/provision.py`** — idempotent script that reads `PAPERLESS_API_TOKEN` from `./.env` and POSTs missing items to the Paperless REST API. Run `python3 paperless-gpt/provision.py` after any taxonomy change. The lists in this script are authoritative — TAXONOMY.md is documentation, `provision.py` is what actually creates the entries.
+
+**Named-field coupling:** `custom_field_prompt.tmpl` references the exact field names `Tax Deductible`, `Residency-Related`, `Recurring`, `Action Required` to apply boolean heuristics (German Steuererklärung relevance, Anmeldung/visa context, recurring charges, deadlines). Renaming any of these fields in Paperless without also updating the prompt silently disables the heuristic for that field.
 
 Upstream docs for the template surface and additional vars: <https://github.com/icereed/paperless-gpt>.
 

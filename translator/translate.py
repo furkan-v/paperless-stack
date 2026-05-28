@@ -43,6 +43,17 @@ STILL_PROCESSING_TAG_NAMES = {"paperless-gpt-auto", "paperless-gpt-ocr-auto"}
 TRANSLATION_MARKER = "--- English Translation ---"
 PROMPT_PATH = Path("/app/prompts/translate.tmpl")
 
+# ISO 639-1 codes whose detected language should NOT be translated — the doc
+# is still marked `Is Translated = true` so the polling loop stops seeing it.
+# Configurable via env (comma-separated, e.g. "en,tr,fr"). TARGET_LANGUAGE_CODE
+# is force-added below so an empty value can never trigger English -> English.
+SKIP_LANGUAGES: set[str] = {
+    code.strip().lower()
+    for code in os.environ.get("SKIP_LANGUAGES", "en,tr").split(",")
+    if code.strip()
+}
+SKIP_LANGUAGES.add(TARGET_LANGUAGE_CODE)
+
 # ISO 639-1 codes → full language names, used to fill the translategemma prompt
 # template (see https://ollama.com/library/translategemma — it expects both the
 # full name and the ISO code in each placeholder).
@@ -267,9 +278,9 @@ def process_document(doc: dict, translated_field_id: int) -> str:
         return "skipped:already_appended"
 
     lang = detect_language(content)
-    if lang == TARGET_LANGUAGE_CODE:
+    if lang in SKIP_LANGUAGES:
         patch_document(doc, None, translated_field_id)
-        return "english"
+        return f"skipped:{lang}"
     if lang == "unknown":
         # Don't mark — try again next poll in case content grows.
         return "skipped:lang_unknown"
@@ -334,7 +345,8 @@ def main() -> None:
 
     print(
         f"translator: starting model={TRANSLATE_MODEL} interval={POLL_INTERVAL}s "
-        f"min={MIN_CONTENT_LENGTH} max={MAX_CONTENT_LENGTH}",
+        f"min={MIN_CONTENT_LENGTH} max={MAX_CONTENT_LENGTH} "
+        f"skip={','.join(sorted(SKIP_LANGUAGES))}",
         flush=True,
     )
     print(f"  paperless: {PAPERLESS_BASE_URL}", flush=True)

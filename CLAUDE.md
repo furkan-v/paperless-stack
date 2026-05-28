@@ -103,13 +103,13 @@ Upstream docs for the template surface and additional vars: <https://github.com/
 1. Are **not** tagged with `paperless-gpt-auto` or `paperless-gpt-ocr-auto` (i.e. paperless-gpt is done with them), AND
 2. Have **not** had their `Is Translated` custom field flipped to `true`.
 
-For each candidate it runs `langdetect` on the OCR'd `content`. English docs are marked `Is Translated = true` and skipped. Non-English docs get translated by Ollama (model from `TRANSLATE_MODEL`, default `translategemma:4b`); the translation is **appended** below the original under a `--- English Translation ---` marker, then `Is Translated` is flipped. The original German text is preserved so Paperless's full-text search hits both languages.
+For each candidate it runs `langdetect` on the OCR'd `content`. Docs whose detected language is in `SKIP_LANGUAGES` (default `en,tr`) are marked `Is Translated = true` and skipped without a model call — `en` is always force-included so an empty `SKIP_LANGUAGES` can't trigger English→English self-translation. Other languages get translated by Ollama (model from `TRANSLATE_MODEL`, default `translategemma:4b`); the translation is **appended** below the original under a `--- English Translation ---` marker, then `Is Translated` is flipped. The original (German, French, etc.) text is preserved so Paperless's full-text search hits both languages.
 
 Key files:
 
 - `translator/translate.py` — the poll loop (stdlib HTTP + `langdetect`)
 - `translator/prompts/translate.tmpl` — bind-mounted at `/app/prompts`; uses `{{content}}` for substitution (single-replace, not Go templates)
-- `translator/.env` — `TRANSLATE_MODEL`, `POLL_INTERVAL`, `MIN_CONTENT_LENGTH`, `MAX_CONTENT_LENGTH`
+- `translator/.env` — `TRANSLATE_MODEL`, `POLL_INTERVAL`, `SKIP_LANGUAGES`, `MIN_CONTENT_LENGTH`, `MAX_CONTENT_LENGTH`
 - `translator/Dockerfile` — `python:3.12-slim` + `langdetect`
 
 Couplings to know about:

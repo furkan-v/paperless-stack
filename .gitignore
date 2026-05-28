@@ -12,4 +12,7 @@ postgres/data
 
 redis/data
 
-.env
+# Project-root .env holds secrets (PAPERLESS_API_TOKEN). Anchored to repo
+# root so per-service ./<svc>/.env files (paperless/, postgres/, translator/, …)
+# remain tracked.
+/.env

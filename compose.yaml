@@ -101,6 +101,22 @@ services:
     volumes:
       - ./paperless-gpt/prompts:/app/prompts # Mount the prompts directory
 
+  # translator service — polls Paperless for finished-but-non-English documents
+  # and appends an English translation produced by an Ollama-hosted model.
+  translator:
+    build: ./translator
+    container_name: translator
+    restart: unless-stopped
+    depends_on:
+      - ollama
+      - paperless
+      - paperless-gpt
+    env_file:
+      - ./translator/.env
+    environment:
+      PAPERLESS_API_TOKEN: ${PAPERLESS_API_TOKEN-}
+    volumes:
+      - ./translator/prompts:/app/prompts
 
   # optional but helpful log viewer
   dozzle:

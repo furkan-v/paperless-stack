@@ -129,6 +129,7 @@ Up to **10 fields populated per document**. Boolean heuristics produce `true` on
 | Residency-Related | Boolean        | Connected to Anmeldung, visa, Aufenthaltstitel, Ausländerbehörde   |
 | Recurring         | Boolean        | Recurring charge or schedule explicit in the document              |
 | Action Required   | Boolean        | Clear deadline, payment due, or required response                  |
+| Is Translated     | Boolean        | Set to `true` by the `translator` service after English translation is appended (acts as the de-dup marker for the polling loop). Do not touch manually. |
 
 ### Misc
 | Name           | Paperless type | Notes                                       |

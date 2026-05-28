@@ -58,6 +58,7 @@ CUSTOM_FIELDS: list[tuple[str, str]] = [
     ("Residency-Related", "boolean"),
     ("Recurring", "boolean"),
     ("Action Required", "boolean"),
+    ("Is Translated", "boolean"),
     ("Brief Summary", "string"),
 ]
 

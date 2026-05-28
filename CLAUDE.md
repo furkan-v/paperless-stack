@@ -22,9 +22,10 @@ Defined entirely in `compose.yaml`. All containers share the default Compose net
 | `ollama`       | `ollama/ollama:latest`                        | —         | —                                 | Local LLM inference                           |
 | `open-webui`   | `ghcr.io/open-webui/open-webui:latest`        | `3001`    | ollama                            | Browser UI for managing/pulling Ollama models |
 | `paperless-gpt`| `icereed/paperless-gpt:latest`                | `3002`    | ollama, paperless                 | LLM-driven OCR, titling, tagging, fields      |
+| `translator`   | local build `./translator`                    | —         | ollama, paperless, paperless-gpt  | Appends an English translation to non-English docs (poll loop) |
 | `dozzle`       | `amir20/dozzle:latest`                        | `8080`    | —                                 | Real-time Docker log viewer                   |
 
-The AI services (`ollama`, `open-webui`, `paperless-gpt`) are optional — commenting them out leaves a working Paperless install.
+The AI services (`ollama`, `open-webui`, `paperless-gpt`, `translator`) are optional — commenting them out leaves a working Paperless install.
 
 ---
 
@@ -40,6 +41,12 @@ CLAUDE.md                     # this file
 
 <service>/.env                # per-service env file, committed (timezone + non-secret config)
 paperless-gpt/prompts/*.tmpl  # Go text/template files mounted into paperless-gpt
+paperless-gpt/provision.py    # idempotent Paperless taxonomy bootstrapper
+paperless-gpt/TAXONOMY.md     # human-readable reference for tags/types/fields
+
+translator/Dockerfile         # python:3.12-slim + langdetect
+translator/translate.py       # poll loop: detect-language → translate → PATCH
+translator/prompts/*.tmpl     # bind-mounted at /app/prompts; uses `{{content}}` substitution
 ```
 
 Every service has its own top-level directory and committed `.env` for non-secret config. The one secret in this stack — `PAPERLESS_API_TOKEN` for paperless-gpt — is **not** committed: `compose.yaml` declares it under `environment:` as `${PAPERLESS_API_TOKEN-}`, interpolated from the gitignored project-root `./.env` (template: `.env.example`). All other paperless-gpt config still lives in `paperless-gpt/.env`.
@@ -86,6 +93,32 @@ The prompts assume a specific Paperless-side taxonomy (tags / document types / c
 **Named-field coupling:** `custom_field_prompt.tmpl` references the exact field names `Tax Deductible`, `Residency-Related`, `Recurring`, `Action Required` to apply boolean heuristics (German Steuererklärung relevance, Anmeldung/visa context, recurring charges, deadlines). Renaming any of these fields in Paperless without also updating the prompt silently disables the heuristic for that field.
 
 Upstream docs for the template surface and additional vars: <https://github.com/icereed/paperless-gpt>.
+
+---
+
+## Translator Service
+
+`translator/` is a local-build container that runs *after* paperless-gpt finishes a document. It polls Paperless every `POLL_INTERVAL` seconds (default 60s) for documents that:
+
+1. Are **not** tagged with `paperless-gpt-auto` or `paperless-gpt-ocr-auto` (i.e. paperless-gpt is done with them), AND
+2. Have **not** had their `Is Translated` custom field flipped to `true`.
+
+For each candidate it runs `langdetect` on the OCR'd `content`. English docs are marked `Is Translated = true` and skipped. Non-English docs get translated by Ollama (model from `TRANSLATE_MODEL`, default `translategemma:4b`); the translation is **appended** below the original under a `--- English Translation ---` marker, then `Is Translated` is flipped. The original German text is preserved so Paperless's full-text search hits both languages.
+
+Key files:
+
+- `translator/translate.py` — the poll loop (stdlib HTTP + `langdetect`)
+- `translator/prompts/translate.tmpl` — bind-mounted at `/app/prompts`; uses `{{content}}` for substitution (single-replace, not Go templates)
+- `translator/.env` — `TRANSLATE_MODEL`, `POLL_INTERVAL`, `MIN_CONTENT_LENGTH`, `MAX_CONTENT_LENGTH`
+- `translator/Dockerfile` — `python:3.12-slim` + `langdetect`
+
+Couplings to know about:
+
+- The `Is Translated` custom field must exist in Paperless. It's defined in `paperless-gpt/provision.py`; the translator tick logs a warning and skips if the field is missing.
+- The tag names `paperless-gpt-auto` and `paperless-gpt-ocr-auto` are hardcoded in `STILL_PROCESSING_TAG_NAMES`. If paperless-gpt's tag scheme is reconfigured in `paperless-gpt/.env`, update the constant in `translate.py` too.
+- `TRANSLATION_MARKER` in `translate.py` is also used as a guard against double-appending — if you change it, old translated docs become re-translatable.
+
+Debugging: `docker compose logs -f translator`.
 
 ---
 

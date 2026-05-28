@@ -56,7 +56,8 @@ The prompt selects up to 6 tags per document. Flat, mid-grain, single-level — 
 - `health-medical` — doctor visits, hospital, medical bills
 - `prescription` — prescriptions, pharmacy
 - `education` — courses, certificates, school/university
-- `shopping-retail` — general retail purchases
+- `groceries` — supermarket and grocery store receipts (Kaufland, Rewe, Aldi, Edeka, Lidl, Penny, …)
+- `shopping-retail` — general retail purchases (clothing, electronics, etc. — not groceries)
 - `home-services` — handymen, cleaning, repair
 
 ### Qualifiers (pick 0–2)

@@ -1,19 +1,43 @@
 Select up to 6 tags for this document from the list provided.
 
+CORE PRINCIPLE — read carefully:
+EVERY tag you pick must be clearly supported by something in the document content. If no specific text in the document supports a tag, you MUST omit it. Fewer relevant tags are vastly better than extra unsupported tags. For instance, returning 3 strong tags is correct; returning 5 with 2 weak ones is wrong.
+
 RULES:
 1. ONLY pick tags from <available_tags>. Never invent tags.
-2. Pick a maximum of 6 tags. Fewer is better if fewer clearly apply.
-3. Do NOT duplicate the document type as a tag (the type already covers "what shape is this"). Tags add filtering axes the type does not.
-4. Qualifier-style tags (e.g. `tax-deductible`, `actionable`, `recurring`, `confidential`, `warranty`, `identification`) should only be picked when clearly justified by the content.
+2. Maximum 6 tags. Pick as few as cleanly fit — often 2–4 is right.
+3. Each tag must be evidenced by document content. Specifically:
+   - `health-medical` requires explicit medical/health content (doctor, prescription, diagnosis, hospital, pharmacy, medication). Grocery items are NOT medical evidence.
+   - `groceries` is for supermarket / grocery store receipts (Kaufland, Rewe, Aldi, Edeka, Lidl, etc.) — food and household items.
+   - `legal` is for lawyer correspondence, court documents, NDAs, signed agreements. Routine regulatory boilerplate ("regulated by the FCA", "Datenschutzhinweis", "AGB") is NOT enough to tag a document `legal`.
+   - `tax` requires substantive tax content — a VAT breakdown line counts; a generic "incl. MwSt" footnote alone does not.
+   - `recurring` requires explicit recurring/subscription language in the document.
+   - `actionable` requires an explicit deadline or required action.
+   - `tax-deductible` should only be picked if the document is plausibly deductible on a German Steuererklärung (work expense, charitable donation, eligible medical, professional education, commute tickets, home office) considering the recepient works as a Software Engineer.
+4. Do NOT duplicate the document type as a tag (the type covers "what shape is this"). Tags add filtering axes beyond type.
 5. Lowercase only. Preserve the exact spelling from <available_tags>.
+
+ANTI-PATTERNS (never do these):
+- Picking `health-medical` for a grocery / supermarket receipt because food items appear.
+- Picking `legal` for a transaction summary or receipt because of regulatory disclosure text.
+- Picking filler tags to round out the count. Empty slots are correct.
+- Picking a qualifier tag (e.g. `actionable`, `recurring`, `tax-deductible`) without specific content supporting it.
 
 OUTPUT FORMAT — exactly: a comma-separated list of tags drawn from <available_tags>. No quotes, no explanations, no leading or trailing whitespace.
 
-EXAMPLES:
-- Utility invoice with due date → `utilities, invoice, recurring, actionable`
-- Restaurant receipt → `restaurant-bar, receipt`
-- Anmeldung confirmation → `residency, government, identification`
-- Lufthansa ticket → `flight, event-ticket`
+CONCRETE EXAMPLES (use as patterns, not as templates to copy verbatim):
+- Kaufland / Rewe / Aldi / Edeka grocery receipt → `groceries, receipt`
+- Restaurant or bar receipt → `restaurant-bar, receipt`
+- TransferGo / Wise / Revolut money-transfer summary → `banking, statement`
+- Bank statement from N26 / Deutsche Bank → `banking, statement`
+- Monthly utility invoice with a due date → `utilities, invoice, recurring, actionable`
+- Anmeldung / Meldebestätigung → `residency, government, identification`
+- Aufenthaltstitel renewal letter → `visa-immigration, government, residency`
+- Lufthansa / BVG / Deutsche Bahn ticket → `flight, event-ticket`  (or `train-rail, event-ticket`)
+- Pharmacy receipt for prescription medication → `health-medical, prescription, receipt, tax-deductible`
+- Steuerbescheid → `tax, government, actionable`
+- Gehaltsabrechnung → `payslip, employment`
+- Hotel booking confirmation → `hotel-lodging, booking-equivalent-tag-if-present`  (pick what's in the list)
 
 <available_tags>
 {{.AvailableTags | join ", "}}

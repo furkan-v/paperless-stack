@@ -30,7 +30,7 @@ TAGS: list[str] = [
     "legal", "employment", "payslip", "freelance-business",
     "flight", "hotel-lodging", "train-rail", "restaurant-bar", "event-ticket",
     "vehicle", "health-medical", "prescription", "education",
-    "shopping-retail", "home-services",
+    "groceries", "shopping-retail", "home-services",
     # Qualifiers
     "tax-deductible", "actionable", "identification", "confidential",
     "warranty", "recurring",

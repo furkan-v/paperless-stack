@@ -1,29 +1,54 @@
-Identify the correspondent for this document.
+Identify the correspondent for this document based on its content.
 
 A correspondent is the sender (if you received the document) or the recipient (if you sent it). It can be:
-- a company or organization
+- a company or organization (e.g. "Kaufland", "Deutsche Telekom", "TransferGo")
 - a person (use first + last name only — no titles like "Dr.", "Mr.", "Frau")
-- a government agency or authority
-- an email address (use ONLY if no real entity name is visible anywhere in the document)
+- a government agency or authority (e.g. "Bezirksamt Pankow", "Bundesamt für Migration und Flüchtlinge")
+- an email address (only if no real entity name appears in the text)
 
-RULES — strict, no hallucinations:
+CORE PRINCIPLE — read this carefully:
 
-1. If the document clearly names an entity that matches one in <example_correspondents> (case- and spelling-tolerant, including minor formatting differences), output the name EXACTLY as it appears in that list.
+The correspondent MUST be an entity whose name LITERALLY APPEARS as text in <content>. Typical places where the name lands in OCR text:
+- the first few lines (where letterhead, store name, or page header usually print)
+- "From:" / "Absender:" / "Sender:" fields
+- return address blocks
+- signature lines near the bottom
+- any text captured from a stamp, seal, or footer
 
-2. Otherwise, if the document explicitly names an entity in its header, letterhead, signature, "From:" / "Absender" field, return address, or sender block, output that name as written. Preserve original spelling and language — do NOT translate names like "Bundesamt für Migration und Flüchtlinge" into {{.Language}}.
-
-3. If no entity is clearly identifiable in the document, output exactly:
+If the entity exists only visually in the original (a logo, an unreadable stamp) and its name is NOT present anywhere in <content>, you CANNOT identify it. In that case, output exactly:
 Unknown
 
-4. Never combine multiple parties. If several entities appear (e.g. an invoice from A to B that mentions C), pick the single most relevant — usually the sender on incoming documents, the recipient on outgoing.
+The <example_correspondents> list is provided ONLY as a normalization reference for capitalization and spelling. It is NOT a menu of allowed answers. You MUST NEVER pick a name from this list if the text in <content> does not reference that entity.
 
-5. Never invent, never guess. If you are unsure between several candidates, output Unknown.
+PROCEDURE — follow in order:
 
-6. Legal-suffix policy: drop suffixes (GmbH, AG, Ltd, S.a.r.l., Inc., LLC) ONLY IF the <example_correspondents> list shows that convention (e.g. existing entries say "Microsoft" rather than "Microsoft Ireland Operations Limited"). Otherwise keep the name as written in the document.
+Step 1. Read <content> and look for entity names. Pay particular attention to the first few lines and to any explicit "From / Sender / Absender" markers.
 
-7. Never output a name that appears in <blacklisted_correspondents>.
+Step 2. If you found an entity name in Step 1:
+   a. If it matches an entry in <example_correspondents> (case- and spelling-tolerant, ignoring minor format differences), output that entry EXACTLY as it appears in the list.
+   b. Otherwise, output the entity as written in <content>. Preserve original spelling and language. For instance, do NOT translate "Bundesamt für Migration und Flüchtlinge" into {{.Language}}.
 
-OUTPUT: exactly one line — either a correspondent name, or the literal word `Unknown`. No quotes, no commentary.
+Step 3. If <content> does NOT contain any clearly named entity — for example a receipt whose store name didn't OCR, or a stamped notice whose stamp is unreadable — output exactly:
+Unknown
+
+ADDITIONAL RULES:
+
+- Never pick a name from <example_correspondents> if the text in <content> does not reference that entity. When in doubt → Unknown.
+- Never combine multiple parties. Pick the single most relevant entity (usually the sender on incoming documents, the recipient on outgoing).
+- Never invent, never guess. If you are uncertain between several candidates, output Unknown.
+- For companies: drop legal suffixes (GmbH, AG, Ltd, Inc., LLC, S.a.r.l., UAB) ONLY IF the matched <example_correspondents> entry uses the shortened form. Otherwise keep the name as written in <content>.
+- For persons: first + last name only. Drop titles.
+- Never output a name appearing in <blacklisted_correspondents>.
+
+EXAMPLES OF CORRECT BEHAVIOR:
+
+- <content> starts with "Kaufland\nStorkower Straße..." → `Kaufland`
+- Meldebestätigung whose <content> shows the form template but the agency/stamp line did not OCR → `Unknown`  (do NOT pick a random correspondent from the list)
+- Document whose only entity names in <content> are the user's own (recipient on an outgoing letter, with no other party named) → `Unknown`
+- <content> shows "Microsoft Ireland Operations Limited" while the list contains "Microsoft" → `Microsoft`
+- <content> shows "Bundesamt für Migration und Flüchtlinge" with no matching list entry → `Bundesamt für Migration und Flüchtlinge`
+
+OUTPUT: exactly one line — either a correspondent name produced by the procedure above, or the literal word `Unknown`. No quotes, no commentary, no explanation.
 
 <example_correspondents>
 {{.AvailableCorrespondents | join ", "}}

@@ -12,36 +12,23 @@ FIELDS TO CONSIDER:
 {{.CustomFieldsXML}}
 
 RULES — strict, no hallucinations:
-
-1. Include a field ONLY if the document actually contains, or directly implies, a value for it. If you are not sure, OMIT the field.
-
-2. Output AT MOST 8 fields per document. If many fields could apply, keep the most useful.
-
-3. Format values by the field's `type` attribute:
-   - `date` → YYYY-MM-DD. Convert "12.03.2024" → "2024-03-12". Never invent a date that is not present in the document.
-   - `monetary` → 3-letter ISO currency code + amount with two decimals and a period. Examples: `EUR1664.58`, `USD42.00`, `CHF99.90`. Convert European formats: "1.664,58 €" → "EUR1664.58". If no currency symbol is shown, default to EUR.
-   - `integer` / `float` → numeric only (e.g. `4`, `3.5`). No units, no symbols.
+1. Include a field ONLY if the document contains, or clearly implies, its value. OMIT if unsure.
+2. Output AT MOST 8 fields per document. Prioritize useful fields.
+3. Format values based on field `type`:
+   - `date` → YYYY-MM-DD (e.g., "12.03.2024" → "2024-03-12"). Never invent dates.
+   - `monetary` → 3-letter ISO currency code + amount with two decimals and a period (e.g., "EUR1664.58", "USD42.00"). Default to EUR if no symbol is shown.
+   - `integer`/`float` → numeric only (e.g., "4", "3.5"). No units, symbols.
    - `boolean` → exactly `true` or `false`, lowercase.
-   - `string` / `text` → copy as written in the document. Trim whitespace. Do not translate or paraphrase.
+   - `string`/`text` → copy as written in the document. Trim whitespace.
    - `url` → full URL as written.
 
-4. Boolean heuristics — output `true` only when CLEARLY justified by the document. When uncertain, OMIT the field entirely (do not output `false` just to fill it in):
-   - `Tax Deductible` → true only when the document is plausibly deductible on a German Steuererklärung (work-related expense, charitable donation, eligible medical expense, professional education, home-office cost, public-transport ticket used for commuting, etc.).
-   - `Residency-Related` → true only when the document concerns Anmeldung, Meldebescheinigung, visa, Aufenthaltstitel, Ausländerbehörde, or another immigration/registration matter.
-   - `Recurring` → true only when the document explicitly indicates a recurring charge or schedule (monthly subscription, rent, periodic service).
-   - `Action Required` → true only when there is a clear deadline, payment due, or required response noted in the document.
+4. Boolean heuristics: Output `true` ONLY when CLEARLY justified by the document. OMIT if uncertain.
+   - `Tax Deductible` → true only for plausible German Steuererklärung deductions (work expense, charitable donation, medical, etc.).
+   - `Residency-Related` → true only for Anmeldung, Meldebescheinigung, visa/immigration matters.
+   - `Recurring` → true only when there’s explicit recurring charge or schedule.
+   - `Action Required` → true only with a clear deadline, payment due, or required response.
 
-5. Never invent values. Never copy a value from one field into another. Skip any field for which the document provides no evidence.
+5. Never invent values.  Do not copy values between fields. Skip fields with no evidence.
+6. Avoid irrelevant fields (e.g., don't output "Customer Number" on an internal letter).
 
-6. Skip fields not relevant for this document type (e.g. do not output `Customer Number` on an internal personal letter that has none, do not output `Event / Reservation Date` on a bank statement).
-
-OUTPUT: a valid JSON array of objects, each `{"field": <field name from the list>, "value": <extracted value>}`. No prose, no markdown, no code fence, no commentary. If no fields apply, output exactly `[]`.
-
-EXAMPLE OUTPUT:
-[
-  {"field": "Total Amount", "value": "EUR1664.58"},
-  {"field": "Tax / VAT Amount", "value": "EUR265.59"},
-  {"field": "Due Date", "value": "2027-04-15"},
-  {"field": "Document Number", "value": "INV-2026-00428"},
-  {"field": "Tax Deductible", "value": "true"}
-]
+OUTPUT: a valid JSON array of objects, each `{"field": <field name>, "value": <extracted value>}`. No prose, no markdown
